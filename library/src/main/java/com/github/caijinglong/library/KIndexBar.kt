@@ -99,9 +99,14 @@ class KIndexBar @JvmOverloads constructor(
         when (event?.action) {
             MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> {
                 // 计算坐标,获取当前
-                val per = height / indexArray.indexArray().count()
+                val count = indexArray.indexArray().count()
+                val per = height / count
                 val index = (event.y / per).toInt()
-                onTouchObserver?.onCurrentTouch(indexArray.indexArray()[index])
+                if (index >= count) {
+                    onTouchObserver?.onCurrentTouch(indexArray.indexArray()[count - 1])
+                } else {
+                    onTouchObserver?.onCurrentTouch(indexArray.indexArray()[index])
+                }
                 return true
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
