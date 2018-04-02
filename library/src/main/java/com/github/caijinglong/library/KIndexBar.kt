@@ -15,13 +15,13 @@ import android.view.View
 class KIndexBar @JvmOverloads constructor(
         context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
-    var indexArray: IndexArray
+    var indexArray: IndexArray = defaultIndexArray()
+        set(value) {
+            field = value
+            invalidate()
+        }
 
     private val _height = 30
-
-    init {
-        indexArray = defaultIndexArray()
-    }
 
     private fun defaultIndexArray(): IndexArray {
         return object : IndexArray {
