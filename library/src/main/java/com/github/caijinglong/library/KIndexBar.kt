@@ -54,12 +54,27 @@ class KIndexBar @JvmOverloads constructor(
         for (index in 0 until count) {
             _rect.top = height / count * index
             _rect.bottom = _rect.top + h
-            drawInRect(canvas, _rect, indexArray.indexArray()[index].indexString(), 40F)
+            drawInRect(canvas, _rect, indexArray.indexArray()[index].indexString(), textSize)
         }
 
     }
 
     private val _rect = Rect()
+
+    var textSize = 30F
+    private val _paint = Paint()
+
+    init {
+        _paint.color = Color.BLACK
+        _paint.isAntiAlias = true
+        _paint.textAlign = Paint.Align.CENTER
+    }
+
+    var textColor = Color.BLACK
+        set(value) {
+            field = value
+            _paint.color = value
+        }
 
     companion object {
         var DEBUG_BORDER = false
@@ -79,13 +94,6 @@ class KIndexBar @JvmOverloads constructor(
         canvas.drawText(text, x.toFloat(), y, _paint)
     }
 
-    private val _paint = Paint()
-
-    init {
-        _paint.color = Color.BLACK
-        _paint.isAntiAlias = true
-        _paint.textAlign = Paint.Align.CENTER
-    }
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
         when (event?.action) {
