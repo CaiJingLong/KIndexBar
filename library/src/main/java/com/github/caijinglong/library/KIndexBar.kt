@@ -15,10 +15,18 @@ import android.view.View
 class KIndexBar @JvmOverloads constructor(
         context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
+
+    private var needRefresh = false
+
     var indexArray: IndexArray = defaultIndexArray()
         set(value) {
             field = value
-            invalidate()
+
+            if (!isDrawing) {
+                invalidate()
+            } else {
+                needRefresh = true
+            }
         }
 
     private val _height = 30
@@ -39,11 +47,16 @@ class KIndexBar @JvmOverloads constructor(
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
     }
 
+    private var isDrawing = false
+
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
         if (canvas == null) {
             return
         }
+
+        isDrawing = true
+
         val count = indexArray.indexArray().count()
 
         _rect.left = 0
@@ -57,6 +70,12 @@ class KIndexBar @JvmOverloads constructor(
             drawInRect(canvas, _rect, indexArray.indexArray()[index].indexString(), textSize)
         }
 
+        isDrawing = false
+
+        if (needRefresh) {
+            needRefresh = false
+            invalidate()
+        }
     }
 
     private val _rect = Rect()
