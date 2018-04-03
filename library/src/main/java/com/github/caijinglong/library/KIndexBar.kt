@@ -57,7 +57,9 @@ class KIndexBar @JvmOverloads constructor(
 
         isDrawing = true
 
-        val count = indexArray.indexArray().count()
+        val array = indexArray.indexArray().toList()
+
+        val count = array.count()
 
         _rect.left = 0
         _rect.right = width
@@ -67,7 +69,7 @@ class KIndexBar @JvmOverloads constructor(
         for (index in 0 until count) {
             _rect.top = height / count * index
             _rect.bottom = _rect.top + h
-            drawInRect(canvas, _rect, indexArray.indexArray()[index].indexString(), textSize)
+            drawInRect(canvas, _rect, array[index].indexString(), textSize)
         }
 
         isDrawing = false
