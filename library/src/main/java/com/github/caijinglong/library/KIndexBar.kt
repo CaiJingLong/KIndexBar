@@ -21,15 +21,27 @@ class KIndexBar @JvmOverloads constructor(
     var indexArray: IndexArray = defaultIndexArray()
         set(value) {
             field = value
-
-            if (!isDrawing) {
-                invalidate()
-            } else {
-                needRefresh = true
-            }
+            needInvalidate()
         }
 
-    private val _height = 30
+    private fun needInvalidate() {
+        //用于在绘制过程中触发重绘,从而导致的array修改异常
+        if (!isDrawing) {
+            invalidate()
+        } else {
+            needRefresh = true
+        }
+    }
+
+    private var _height = 40
+
+    /** item height */
+    var itemHeight = _height
+        set(value) {
+            field = value
+            _height = value
+            needInvalidate()
+        }
 
     private fun defaultIndexArray(): IndexArray {
         return object : IndexArray {
@@ -50,12 +62,14 @@ class KIndexBar @JvmOverloads constructor(
     private var isDrawing = false
 
     override fun onDraw(canvas: Canvas?) {
+        // 记录正在drawing的状态
+        isDrawing = true
         super.onDraw(canvas)
         if (canvas == null) {
+            isDrawing = false
             return
         }
 
-        isDrawing = true
 
         val array = indexArray.indexArray().toList()
 
@@ -64,25 +78,42 @@ class KIndexBar @JvmOverloads constructor(
         _rect.left = 0
         _rect.right = width
 
-        val h = height / count
+        var paddingTop = 0
+        var h = height / count
+
+        if (count * _height < height) {  // 如果当目前实际高度大于绘制高度时,用于控制绘制区域
+            paddingTop = (height - _height * count) / 2
+            h = _height
+        }
+
+        mPaddingTop = paddingTop
+        perChildHeight = h
 
         for (index in 0 until count) {
-            _rect.top = height / count * index
+            _rect.top = h * index + paddingTop
             _rect.bottom = _rect.top + h
             drawInRect(canvas, _rect, array[index].indexString(), textSize)
         }
 
         isDrawing = false
 
-        if (needRefresh) {
+        if (needRefresh) { //如果被标记为需要刷新,则重新绘制一次
             needRefresh = false
             invalidate()
         }
     }
 
+    private var mPaddingTop = 0
+    private var perChildHeight = 0
+
     private val _rect = Rect()
 
-    var textSize = 30F
+    var textSize = 30F //文字高度,不应大于itemHeight
+        set(value) {
+            field = value
+            needRefresh
+        }
+
     private val _paint = Paint()
 
     init {
@@ -110,9 +141,9 @@ class KIndexBar @JvmOverloads constructor(
         }
 
         val x = rect.centerX()
-        val y = rect.centerY() + textSize / 2
+        val y = rect.centerY() + textSize / 4
         _paint.textSize = textSize
-        canvas.drawText(text, x.toFloat(), y, _paint)
+        canvas.drawText(text, x.toFloat(), y.toFloat(), _paint)
     }
 
 
@@ -120,11 +151,9 @@ class KIndexBar @JvmOverloads constructor(
         when (event?.action) {
             MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> {
                 // 计算坐标,获取当前
-                val count = indexArray.indexArray().count()
-                val per = height / count
-                val index = (event.y / per).toInt()
-                if (index >= count) {
-                    onTouchObserver?.onCurrentTouch(indexArray.indexArray()[count - 1])
+                val index = getCurrentIndex(event.y)
+                if (index < 0 || index >= indexArray.indexArray().count()) {
+                    return true
                 } else {
                     onTouchObserver?.onCurrentTouch(indexArray.indexArray()[index])
                 }
@@ -139,6 +168,17 @@ class KIndexBar @JvmOverloads constructor(
         }
 
         return super.onTouchEvent(event)
+    }
+
+    private fun getCurrentIndex(y: Float): Int {
+//        val count = indexArray.indexArray().count()
+        if (y < mPaddingTop || y > height - mPaddingTop) {
+            return -1
+        }
+//        val h = height - mPaddingTop * 2 //真实的可点击区域高度 ps:240
+        val realY = y - mPaddingTop // y的真实坐标  ps:22
+        //期望 index 0  22/40 = 0   50/40 = 1 so
+        return (realY / perChildHeight).toInt()
     }
 
     private class Index(var index: String, var id: String) : IndexAble {

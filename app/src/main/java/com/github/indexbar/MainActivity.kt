@@ -32,7 +32,7 @@ class MainActivity : AppCompatActivity(), KIndexBar.IndexBarOnTouchObserver {
     }
 
     override fun onCurrentTouch(currentTouch: IndexAble) {
-
+        println(currentTouch.indexString())
     }
 
     class Index(val string: String, val id: String) : IndexAble {
