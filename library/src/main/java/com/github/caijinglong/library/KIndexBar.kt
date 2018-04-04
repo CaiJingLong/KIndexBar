@@ -161,6 +161,7 @@ class KIndexBar @JvmOverloads constructor(
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 // 取消相关提示信息
+                onTouchObserver?.onCurrentCancelOrUp()
                 return true
             }
             else -> {
@@ -198,5 +199,6 @@ class KIndexBar @JvmOverloads constructor(
 
         fun onCurrentTouch(currentTouch: IndexAble)
 
+        fun onCurrentCancelOrUp() {}
     }
 }
